@@ -1,5 +1,7 @@
 package states;
 
+import flixel.tweens.FlxEase;
+import flixel.tweens.FlxTween;
 import flixel.effects.particles.FlxEmitter;
 import flixel.util.FlxTimer;
 import flixel.FlxCamera;
@@ -31,14 +33,14 @@ class PlayState extends FlxState
 
 	var door:FlxSprite;
 	var signGroup:FlxTypedGroup<Sign> = new FlxTypedGroup<Sign>();
+	var triggerGroup = new FlxTypedGroup<FlxObject>();
+	var triggerMap = new Map<FlxObject, {var type:String; var triggered:Bool;}>();
+
+	var followPoint = new FlxObject();
 
 	var pad:FlxVirtualPad;
 
 	static var levelNum:Int = 1;
-
-	public static var left:Bool = false;
-	public static var right:Bool = false;
-	public static var jump:Bool = false;
 
 	var explosion:FlxEmitter;
 
@@ -137,6 +139,11 @@ class PlayState extends FlxState
 				touchSign(player, sign);
 			}
 		}
+
+		for (trigger in triggerGroup) {
+			if(!triggerMap[trigger].triggered)
+				FlxG.overlap(player, trigger, enterTrigger);
+		}
 	}
 
 	function placeEntities(entity:EntityData)
@@ -151,6 +158,10 @@ class PlayState extends FlxState
 				var sign = new Sign(entity.x, entity.y);
 				sign.message = entity.values.message;
 				signGroup.add(sign);
+			case 'trigger':
+				var trigger = new FlxObject(entity.x, entity.y, entity.width, entity.height);
+				triggerMap.set(trigger, {type: entity.values.triggerType, triggered: false});
+				triggerGroup.add(trigger);
 			default:
 				FlxG.log.add('Unrecognized actor type ${entity.name}');
 		}
@@ -178,5 +189,14 @@ class PlayState extends FlxState
 	function touchSign(player:Player, sign:Sign)
 	{
 		sign.read();
+	}
+
+	function enterTrigger(player:Player, trigger:FlxObject){
+		triggerMap[trigger].triggered = true;
+		switch(triggerMap[trigger].type){
+			case 'level1dialogue':
+				player.paused = true;
+				FlxTween.tween(gameCam, {zoom: 1, 'targetOffset.y': gameCam.targetOffset.y - 150, 'targetOffset.x': gameCam.targetOffset.x + 50}, 2, {ease: FlxEase.cubeInOut});
+		}
 	}
 }

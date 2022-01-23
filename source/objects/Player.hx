@@ -13,6 +13,7 @@ class Player extends FlxSprite
 	public var falling:Bool = false;
 	public var stunned:Bool = false;
 	var walking:Bool = false;
+	public var paused:Bool = false;
 
 	var stunnedTime:Float = 0;
 	var pauseTime:Float = 0;
@@ -91,24 +92,26 @@ class Player extends FlxSprite
 		}
 
 		var turning = velocity.y > 0 ? 1.25 : 1;
-		if (!stunned && FlxG.keys.anyPressed([LEFT, A]))
-		{
-			velocity.x += -maxVelocity.x / (4.5 * turning);
-			facing = FlxObject.LEFT;
-			if (isTouching(FLOOR)){
-				animation.play("lr");
-				walking = true;
+		if(!paused){
+			if (!stunned && FlxG.keys.anyPressed([LEFT, A]))
+			{
+				velocity.x += -maxVelocity.x / (4.5 * turning);
+				facing = FlxObject.LEFT;
+				if (isTouching(FLOOR)){
+					animation.play("lr");
+					walking = true;
+				}
 			}
-		}
 
-		if (!stunned && FlxG.keys.anyPressed([RIGHT, D]))
-		{
-			/// (4.5 * turning)
-			velocity.x += maxVelocity.x / (4.5 * turning);
-			facing = FlxObject.RIGHT;
-			if (isTouching(FLOOR)){
-				animation.play("lr");
-				walking = true;
+			if (!stunned && FlxG.keys.anyPressed([RIGHT, D]))
+			{
+				/// (4.5 * turning)
+				velocity.x += maxVelocity.x / (4.5 * turning);
+				facing = FlxObject.RIGHT;
+				if (isTouching(FLOOR)){
+					animation.play("lr");
+					walking = true;
+				}
 			}
 		}
 
@@ -134,37 +137,39 @@ class Player extends FlxSprite
 			}
 		}
 
-		if (jumpTimer >= 0 && FlxG.keys.pressed.UP)
-		{
-			jumping = true;
-			jumpTimer += elapsed;
-			if(FlxG.keys.justPressed.UP) FlxG.sound.play('assets/sounds/jump.ogg');
-		}
-		else
-			jumpTimer = -1;
-
-		if (!stunned && jumpTimer > 0 && jumpTimer < .25)
-		{
-			velocity.y = -maxVelocity.y / 1.75; /// 1.5;
-			animation.play("jump", true);
-		}
-
-		if (!stunned && dashCount > 0 && FlxG.keys.justPressed.X)
-		{
-			dashCount -= 1;
-			stunned = true;
-			stunnedTime = .1;
-			maxVelocity.x = 900 * 3;
-			acceleration.y = 0;
-			velocity.y = 0;
-			FlxG.sound.play('assets/sounds/dash.ogg');
-			if (FlxG.keys.pressed.RIGHT)
+		if(!paused){
+			if (jumpTimer >= 0 && FlxG.keys.pressed.UP)
 			{
-				velocity.x = maxVelocity.x;
+				jumping = true;
+				jumpTimer += elapsed;
+				if(FlxG.keys.justPressed.UP) FlxG.sound.play('assets/sounds/jump.ogg');
 			}
-			if (FlxG.keys.pressed.LEFT)
+			else
+				jumpTimer = -1;
+
+			if (!stunned && jumpTimer > 0 && jumpTimer < .25)
 			{
-				velocity.x = -maxVelocity.x;
+				velocity.y = -maxVelocity.y / 1.75; /// 1.5;
+				animation.play("jump", true);
+			}
+
+			if (!stunned && dashCount > 0 && FlxG.keys.justPressed.X)
+			{
+				dashCount -= 1;
+				stunned = true;
+				stunnedTime = .1;
+				maxVelocity.x = 900 * 3;
+				acceleration.y = 0;
+				velocity.y = 0;
+				FlxG.sound.play('assets/sounds/dash.ogg');
+				if (FlxG.keys.pressed.RIGHT)
+				{
+					velocity.x = maxVelocity.x;
+				}
+				if (FlxG.keys.pressed.LEFT)
+				{
+					velocity.x = -maxVelocity.x;
+				}
 			}
 		}
 	}
